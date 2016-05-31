@@ -24,10 +24,6 @@ THE SOFTWARE.
 
 """
 
-import array
-import sys
-
-
 from .. import ivi
 from .. import scope
 from .. import scpi
@@ -158,6 +154,7 @@ TimebaseReferenceMapping = {
         'center': 'cent',
         'right': 'righ'}
 TriggerModifierMapping = {'none': 'normal', 'auto': 'auto'}
+
 
 class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
                        scpi.common.SelfTest, scpi.common.Memory,
@@ -294,11 +291,9 @@ class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
                         ivi.Doc("""
                         Returns number of passed test
                         """))
-
-
         self._init_channels()
 
-    def _initialize(self, resource = None, id_query = False, reset = False, **keywargs):
+    def _initialize(self, resource=None, id_query=False, reset=False, **keywargs):
         "Opens an I/O session to the instrument."
 
         self._channel_count = self._analog_channel_count + self._digital_channel_count
@@ -320,7 +315,6 @@ class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
         # reset
         if reset:
             self.utility.reset()
-
 
     def _utility_disable(self):
         pass
@@ -348,9 +342,9 @@ class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
 
         self._analog_channel_name = list()
         for i in range(self._analog_channel_count):
-            self._channel_name.append("channel%d" % (i+1))
-            self._channel_label.append("%d" % (i+1))
-            self._analog_channel_name.append("channel%d" % (i+1))
+            self._channel_name.append("channel%d" % (i + 1))
+            self._channel_label.append("%d" % (i + 1))
+            self._analog_channel_name.append("channel%d" % (i + 1))
             self._channel_probe_skew.append(0)
             self._channel_scale.append(1.0)
             self._channel_trigger_level.append(0.0)
