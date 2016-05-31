@@ -28,6 +28,7 @@ Instrument standard from the [IVI foundation](http://www.ivifoundation.org/).
     * Tektronix DPO4000 series
     * Tektronix MDO4000 series
     * Tektronix MSO4000 series
+    * Rohde & Schwarz HMO1002 series
   * Digital Multimeters (dmm):
     * Agilent 34401A
     * Agilent 34410A
