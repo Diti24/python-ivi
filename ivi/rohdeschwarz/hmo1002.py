@@ -377,15 +377,20 @@ class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
 
         self._write_raw(b'SYST:SET?')
 
-        return self._read_ieee_block()
+        return self._read_raw()
 
     def _system_load_setup(self, data):
         if self._driver_operation_simulate:
             return
+        self._write_raw(b'SYST:SET ' + data)
 
-        self._write_ieee_block(data, 'SYST:SET ')
-
+        # temporary patch
+        xWidth = self._ask('MASK:XWIDth?')
+        self._write('MASK:XWIDth ' + str(float(xWidth)*1.1))
+        self._write('MASK:XWIDth ' + xWidth)
+        self._write('mask:load "/INT/REFERENCE/MSK%s.HMK"' % (chr(data[2563])+chr(data[2564])) )
         self.driver_operation.invalidate_all_attributes()
+        return
 
     def _get_timebase_position(self):
         if not self._driver_operation_simulate and not self._get_cache_valid():
