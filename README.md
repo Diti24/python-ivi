@@ -32,6 +32,7 @@ Instrument standard from the [IVI foundation](http://www.ivifoundation.org/).
   * Digital Multimeters (dmm):
     * Agilent 34401A
     * Agilent 34410A
+    * Rohde & Schwarz HMC8012
   * Function Generators (fgen):
     * Agilent InfiniiVision 2000A X-series (Wavegen option)
     * Agilent InfiniiVision 3000A X-series (Wavegen option)
