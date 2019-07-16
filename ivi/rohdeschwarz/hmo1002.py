@@ -165,7 +165,7 @@ class hmo1002(scpi.common.IdnCommand, scpi.common.ErrorQuery, scpi.common.Reset,
                        scope.SampleMode, scope.TriggerModifier, scope.AutoSetup,
                        extra.common.SystemSetup, extra.common.Screenshot,
                        ivi.Driver):
-    "HMO 1002 Series generic IVI oscilloscope driver"
+    "R&S HMO 1002 Series generic IVI oscilloscope driver"
 
     def __init__(self, *args, **kwargs):
         self.__dict__.setdefault('_instrument_id', '')
