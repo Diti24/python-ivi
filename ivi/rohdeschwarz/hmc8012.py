@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 import time
 import struct
+import numpy as np
 import logging
 
 from .. import ivi
