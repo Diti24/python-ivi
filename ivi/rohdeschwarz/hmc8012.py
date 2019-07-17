@@ -26,10 +26,54 @@ THE SOFTWARE.
 
 import time
 import struct
+import logging
 
 from .. import ivi
 from .. import dmm
 from .. import scpi
+
+logger = logging.getLogger(__name__)
+
+
+MeasurementFunction = set(['dc_volts', 'ac_volts', 'dc_current', 'ac_current',
+                'two_wire_resistance', 'four_wire_resistance',
+                'ac_plus_dc_volts', 'ac_plus_dc_current', 'frequency',
+                'period', 'temperature', 'sensor'])
+
+MeasurementFunctionMapping = {
+        'dc_volts': 'VOLTage:DC',
+        'ac_volts': 'VOLTage:AC',
+        'dc_current': 'CURRent:DC',
+        'ac_current': 'CURRent:AC',
+        'two_wire_resistance': 'RESistance',
+        'four_wire_resistance': 'FRESistance',
+        'frequency': 'FREQuency',
+        'sensor': 'SENSor',
+        'capacitance': 'CAPacitance',
+        'continuity': 'CONTinuity',
+        'diode': 'DIODe'}
+        
+MeasurementRangeMapping = {
+        'dc_volts': 'SENSe:VOLTage:DC:RANGe',
+        'ac_volts': 'SENSe:VOLTage:AC:RANGe',
+        'dc_current': 'SENSe:CURRent:DC:RANGe',
+        'ac_current': 'SENSe:CURRent:AC:RANGe',
+        'two_wire_resistance': 'SENSe:RESistance:RANGe',
+        'four_wire_resistance': 'SENSe:FRESistance:RANGe',
+        'frequency': 'SENSe:FREQuency:VOLTage:RANGe',
+        # 'period': 'per:range:lower',
+        'capacitance': 'SENSe:CAPacitance:RANGe'}
+        
+MeasurementAutoRangeMapping = {
+        'dc_volts': 'SENSe:VOLTage:DC:RANGe:AUTO',
+        'ac_volts': 'SENSe:VOLTage:AC:RANGe:AUTO',
+        'dc_current': 'SENSe:CURRent:DC:RANGe:AUTO',
+        'ac_current': 'SENSe:CURRent:AC:RANGe:AUTO',
+        'two_wire_resistance': 'SENSe:RESistance:RANGe:AUTO',
+        'four_wire_resistance': 'SENSe:FRESistance:RANGe:AUTO',
+        'capacitance': 'SENSe:CAPacitance:RANGe:AUTO'}
+        
+RangeVoltsAdmittedValues = [0.4, 4, 40, 400, 1000]
 
 class hmc8012(scpi.dmm.Base):
     "R&S HMC8012 IVI DMM driver"
@@ -114,8 +158,43 @@ class hmc8012(scpi.dmm.Base):
         if not self._driver_operation_simulate:
             self._write("memory:state:name %d, \"%s\"" % (index, value))
     
-    
-    
+    def _set_measurement_function(self, value):
+        if value not in MeasurementFunctionMapping:
+            raise ivi.ValueNotSupportedException()
+        if not self._driver_operation_simulate:
+            self._write("SENSe:FUNCtion '%s'" % MeasurementFunctionMapping[value])
+        self._measurement_function = value
+        self._set_cache_valid()
+        self._set_cache_valid(False, 'range')
+        self._set_cache_valid(False, 'auto_range')
+        self._set_cache_valid(False, 'resolution')
+        
+    # def _configure(self, function, range):
+    #     self._set_measurement_function(function)
+    #     if range in Auto:
+    #         self._set_auto_range(range)
+    #     else:
+    #         self._set_range(range)
+        
+    def _set_range(self, value):
+        
+        value = float(value)
+        # round up to even power of 10
+        if value not in RangeVoltsAdmittedValues:
+            if value > RangeVoltsAdmittedValues[-1]:
+                value = RangeVoltsAdmittedValues[-1]
+                logger.warning('Range value exceeds the maximum admitted: set to %dV' %(RangeVoltsAdmittedValues[-1]))
+            else:
+                i = np.argmax(np.array(RangeVoltsAdmittedValues)> value)
+                value = RangeVoltsAdmittedValues[i]
+                logger.warning('Range value not admitted: set to %dV' %(RangeVoltsAdmittedValues[i]))
+        if not self._driver_operation_simulate:
+            func = self._get_measurement_function()
+            if func in MeasurementRangeMapping:
+                cmd = MeasurementRangeMapping[func]
+                self._write("%s %g" % (cmd, value))
+        self._range = value
+        self._set_cache_valid()
     
 
 
