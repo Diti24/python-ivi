@@ -26,5 +26,6 @@ THE SOFTWARE.
 
 # Oscilloscopes
 from .hmo1002 import hmo1002
+from .rtc1002 import rtc1002
 # Digital Multimeters
 from .hmc8012 import hmc8012

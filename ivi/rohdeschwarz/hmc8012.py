@@ -76,6 +76,8 @@ MeasurementAutoRangeMapping = {
         
 RangeVoltsAdmittedValues = [0.4, 4, 40, 400, 1000]
 
+ADCRateAdmittedValues = ['SLOW', 'MED', 'FAST']
+
 class hmc8012(scpi.dmm.Base):
     "R&S HMC8012 IVI DMM driver"
     
@@ -96,6 +98,7 @@ class hmc8012(scpi.dmm.Base):
         self._identity_specification_major_version = 4
         self._identity_specification_minor_version = 1
         self._identity_supported_instrument_models = ['HMC8012']
+        self._ADC_rate = 'FAST'
         
         self._add_method('memory.save',
                         self._memory_save)
@@ -105,6 +108,9 @@ class hmc8012(scpi.dmm.Base):
                         self._set_memory_name)
         self._add_method('memory.get_name',
                         self._get_memory_name)
+        self._add_property('ADC_rate',
+                        self._get_ADC_rate,
+                        self._set_ADC_rate)
     
     def _initialize(self, resource = None, id_query = False, reset = False, **keywargs):
         "Opens an I/O session to the instrument."
@@ -158,12 +164,28 @@ class hmc8012(scpi.dmm.Base):
             raise OutOfRangeException()
         if not self._driver_operation_simulate:
             self._write("memory:state:name %d, \"%s\"" % (index, value))
+            
+    def _get_ADC_rate(self):
+        if not self._driver_operation_simulate and not self._get_cache_valid():
+            value = self._ask("SENSe:ADCRate?").strip('"')
+            self._ADC_rate = value
+            self._set_cache_valid()
+        return self._ADC_rate
+    
+    def _set_ADC_rate(self, value):
+        if value.upper() not in ADCRateAdmittedValues:
+            raise ivi.ValueNotSupportedException()
+        if not self._driver_operation_simulate:
+            self._write("SENSe:ADCRate %s" % value.upper())
+        self._measurement_function = value
+        self._set_cache_valid()
+        
     
     def _set_measurement_function(self, value):
         if value not in MeasurementFunctionMapping:
             raise ivi.ValueNotSupportedException()
         if not self._driver_operation_simulate:
-            self._write("SENSe:FUNCtion '%s'" % MeasurementFunctionMapping[value])
+            self._write("SENSe:FUNCtion %s" % MeasurementFunctionMapping[value])
         self._measurement_function = value
         self._set_cache_valid()
         self._set_cache_valid(False, 'range')
@@ -184,11 +206,11 @@ class hmc8012(scpi.dmm.Base):
         if value not in RangeVoltsAdmittedValues:
             if value > RangeVoltsAdmittedValues[-1]:
                 value = RangeVoltsAdmittedValues[-1]
-                logger.warning('Range value exceeds the maximum admitted: set to %dV' %(RangeVoltsAdmittedValues[-1]))
+                logger.warning('Range value exceeds the maximum admitted: set to %.1fV' %(RangeVoltsAdmittedValues[-1]))
             else:
                 i = np.argmax(np.array(RangeVoltsAdmittedValues)> value)
                 value = RangeVoltsAdmittedValues[i]
-                logger.warning('Range value not admitted: set to %dV' %(RangeVoltsAdmittedValues[i]))
+                logger.warning('Range value not admitted: set to %.1fV' %(RangeVoltsAdmittedValues[i]))
         if not self._driver_operation_simulate:
             func = self._get_measurement_function()
             if func in MeasurementRangeMapping:
